@@ -1,0 +1,74 @@
+name: Build and Push ERPNext All-in-One Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps-official.json"
+      - "apps-myinvois.json"
+      - ".github/workflows/build.yml"
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Variant 1: official apps only, latest Frappe v16
+          - variant: official
+            apps_file: apps-official.json
+            frappe_branch: version-16
+            tag_suffix: ""
+          # Variant 2: official apps + MyInvois, pinned to Frappe v15
+          # (MyInvois only officially supports v15 as of now)
+          - variant: myinvois
+            apps_file: apps-myinvois.json
+            frappe_branch: version-15
+            tag_suffix: "-myinvois"
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Checkout frappe_docker (build source)
+        uses: actions/checkout@v4
+        with:
+          repository: frappe/frappe_docker
+          path: frappe_docker
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Encode apps.json for this variant
+        run: |
+          echo "APPS_JSON_BASE64=$(base64 -w0 ${{ matrix.apps_file }})" >> "$GITHUB_ENV"
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: frappe_docker
+          file: frappe_docker/images/custom/Dockerfile
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            FRAPPE_PATH=https://github.com/frappe/frappe
+            FRAPPE_BRANCH=${{ matrix.frappe_branch }}
+            APPS_JSON_BASE64=${{ env.APPS_JSON_BASE64 }}
+            PYTHON_VERSION=3.11
+            NODE_VERSION=20
+          tags: |
+            amirul123/erpnext-allinone:latest${{ matrix.tag_suffix }}
+            amirul123/erpnext-allinone:${{ github.sha }}${{ matrix.tag_suffix }}
+          cache-from: type=gha,scope=${{ matrix.variant }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}
