@@ -1,4 +1,4 @@
-# Fortuntech ERPNext Custom Image
+# ERPNext Custom Image
 
 Single custom Docker image built on `frappe_docker`, with all apps baked in at
 build time so they survive container recreation — no more manual `bench get-app`
