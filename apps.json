@@ -17,11 +17,11 @@
   },
   {
     "url": "https://github.com/frappe/insights",
-    "branch": "main"
+    "branch": "develop"
   },
   {
     "url": "https://github.com/frappe/builder",
-    "branch": "main"
+    "branch": "develop"
   },
   {
     "url": "https://github.com/ERPGulf/myinvois",
