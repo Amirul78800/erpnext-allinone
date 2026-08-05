@@ -1,8 +1,7 @@
-name: Build and Push all-in-one ERPNext Image
+name: Build and Push All-in-One ERPNext Image
 
 on:
   push:
-    branches: [main]
     paths:
       - "apps.json"
       - ".github/workflows/build.yml"
@@ -33,6 +32,26 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Compute branch tag
+        id: branch_tag
+        run: echo "tag=$(echo '${{ github.ref_name }}' | tr '/' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          TAGS="amirul123/allinone-erpnext:${{ steps.branch_tag.outputs.tag }}"
+          TAGS="$TAGS
+          amirul123/allinone-erpnext:${{ github.sha }}"
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            TAGS="$TAGS
+          amirul123/allinone-erpnext:latest"
+          fi
+          {
+            echo "list<<EOF"
+            echo "$TAGS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
@@ -47,8 +66,6 @@ jobs:
             NODE_VERSION=20
           secret-files: |
             apps_json=apps.json
-          tags: |
-            amirul123/allinone-erpnext:latest
-            amirul123/allinone-erpnext:${{ github.sha }}
+          tags: ${{ steps.tags.outputs.list }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
