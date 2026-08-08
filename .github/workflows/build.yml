@@ -58,7 +58,7 @@ jobs:
           context: frappe_docker
           file: frappe_docker/images/layered/Containerfile
           push: true
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           build-args: |
             FRAPPE_PATH=https://github.com/frappe/frappe
             FRAPPE_BRANCH=version-16
