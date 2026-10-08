@@ -12,6 +12,10 @@
     "branch": "develop"
   },
   {
+    "url": "https://github.com/frappe/whatsapp",
+    "branch": "develop"
+  },
+  {
     "url": "https://github.com/frappe/crm",
     "branch": "main"
   },
