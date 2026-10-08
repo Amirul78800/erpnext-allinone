@@ -12,6 +12,10 @@
     "branch": "develop"
   },
   {
+    "url": "https://github.com/frappe/whatsapp",
+    "branch": "develop"
+  },
+  {
     "url": "https://github.com/frappe/crm",
     "branch": "main"
   },
@@ -21,7 +25,7 @@
   },
   {
     "url": "https://github.com/frappe/insights",
-    "branch": "develop"
+    "branch": "version-3"
   },
   {
     "url": "https://github.com/frappe/builder",
