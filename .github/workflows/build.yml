@@ -10,7 +10,7 @@ on:
   workflow_dispatch: {}
 
 concurrency:
-  group: build-allinone-erpnext
+  group: build-allinone-erpnext-${{ github.ref_name }}
   cancel-in-progress: false
 
 env:
@@ -75,7 +75,9 @@ jobs:
           file: frappe_docker/images/layered/Containerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          no-cache: true
+          no-cache: ${{ github.event_name == 'schedule' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             FRAPPE_PATH=${{ env.FRAPPE_PATH }}
             FRAPPE_BRANCH=${{ env.FRAPPE_BRANCH }}
@@ -84,7 +86,8 @@ jobs:
           secret-files: |
             apps_json=apps.json
           tags: |
-            ${{ env.IMAGE }}:v16-${{ steps.date.outputs.d }}
             ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:${{ github.ref_name }}
+            ${{ github.ref_name == 'main' && format('{0}:v16-{1}', env.IMAGE, steps.date.outputs.d) || '' }}
             ${{ github.ref_name == 'main' && format('{0}:v16', env.IMAGE) || '' }}
             ${{ github.ref_name == 'main' && format('{0}:latest', env.IMAGE) || '' }}
