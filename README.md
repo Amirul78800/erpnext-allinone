@@ -109,22 +109,23 @@ it, the database user is locked to the container's IP at creation time, and
 the first container restart (new IP) breaks every DB connection with
 `Access denied`.
 
-## Local test build
-
+5.(Optional) Install the required modules for your deployment only (if you already run install-app erpnext):
 ```bash
-git clone https://github.com/frappe/frappe_docker
-cd frappe_docker
-docker build \
-  --build-arg=FRAPPE_PATH=https://github.com/frappe/frappe \
-  --build-arg=FRAPPE_BRANCH=version-16 \
-  --build-arg=PYTHON_VERSION=3.14.0 \
-  --build-arg=NODE_VERSION=24.12.0 \
-  --secret=id=apps_json,src=/path/to/apps.json \
-  --tag=allinone-erpnext:test \
-  --file=images/layered/Containerfile .
-```
+# HR & Payroll
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app hrms
 
-Requires Docker Engine v23.0+ (BuildKit default).
+# Sales CRM & Customer Service (telephony dependency is handled automatically)
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app crm
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app helpdesk
+
+# Communications & Reporting
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app whatsapp
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app insights
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app builder
+
+# Malaysia LHDN MyInvois Compliance
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app myinvois_erpgulf
+```
 
 ## Environment Variables (`.env`)
 
@@ -193,7 +194,22 @@ Restart Background Workers:
 ```bash
 docker compose restart queue-short queue-long queue-default
 ```
+## Local test build
 
+```bash
+git clone https://github.com/frappe/frappe_docker
+cd frappe_docker
+docker build \
+  --build-arg=FRAPPE_PATH=https://github.com/frappe/frappe \
+  --build-arg=FRAPPE_BRANCH=version-16 \
+  --build-arg=PYTHON_VERSION=3.14.0 \
+  --build-arg=NODE_VERSION=24.12.0 \
+  --secret=id=apps_json,src=/path/to/apps.json \
+  --tag=allinone-erpnext:test \
+  --file=images/layered/Containerfile .
+```
+
+Requires Docker Engine v23.0+ (BuildKit default).
 ## License
 
 Each bundled app retains its own upstream license (mostly MIT/GPL-3.0). This
