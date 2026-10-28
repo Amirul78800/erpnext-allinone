@@ -1,0 +1,5 @@
+# .gitignore
+.env
+*.log
+site-data/
+db-data/

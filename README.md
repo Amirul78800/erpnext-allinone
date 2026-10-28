@@ -7,6 +7,9 @@ container gets recreated.
 
 [![Build and Push](https://github.com/Amirul78800/erpnext-allinone/actions/workflows/build.yml/badge.svg)](https://github.com/Amirul78800/erpnext-allinone/actions/workflows/build.yml)
 [![Docker Hub](https://img.shields.io/badge/docker%20hub-allinone--erpnext-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/amirul123/allinone-erpnext)
+[![Docker Image Size](https://img.shields.io/docker/image-size/amirul123/allinone-erpnext/latest?style=flat-square)](https://hub.docker.com/r/amirul123/allinone-erpnext)
+[![License](https://img.shields.io/github/license/Amirul78800/erpnext-allinone?style=flat-square)](LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/Amirul78800/erpnext-allinone?style=flat-square)](https://github.com/Amirul78800/erpnext-allinone/releases)
 
 ## Why this exists
 
@@ -106,6 +109,91 @@ it, the database user is locked to the container's IP at creation time, and
 the first container restart (new IP) breaks every DB connection with
 `Access denied`.
 
+5.(Optional) Install the required modules for your deployment only (if you already run install-app erpnext):
+```bash
+# HR & Payroll
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app hrms
+
+# Sales CRM & Customer Service (telephony dependency is handled automatically)
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app crm
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app helpdesk
+
+# Communications & Reporting
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app whatsapp
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app insights
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app builder
+
+# Malaysia LHDN MyInvois Compliance
+docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app myinvois_erpgulf
+```
+
+## Environment Variables (`.env`)
+
+Copy the template from `example.env` to `.env` before starting the Docker Compose cluster:
+
+```bash
+cp example.env .env
+```
+| Variable | Example Value | Description |
+| :--- | :--- | :--- |
+| SITE_NAME | erp.yourdomain.com / frontend | Target Frappe site name |
+| DB_PASSWORD | db_secret_pass | Password for the MariaDB database user |
+| DB_ROOT_PASSWORD | mariadb_root_pass | MariaDB root administrative password |
+| ADMIN_PASSWORD | admin_super_secret | Initial password for the Frappe Administrator account |
+| CONTAINER_PORT | 8080 | Host port mapped to the web server / reverse proxy |
+| LETSENCRYPT_EMAIL | admin@yourdomain.com | Email for automated Let's Encrypt SSL certificates (if using Traefik) |
+
+## Operations & Maintenance
+
+Database & File Backups
+Run backups manually or via cron. This exports the database dump and archives public/private uploaded files into sites/${SITE_NAME}/private/backups/:
+```bash
+docker compose exec backend bench --site ${SITE_NAME:-frontend} backup --with-files
+```
+Site Restoration
+To restore a site from an existing .sql.gz archive:
+```bash
+docker compose exec backend bench --site ${SITE_NAME:-frontend} restore \
+  /path/to/backup.sql.gz \
+  --mariadb-root-password ${DB_ROOT_PASSWORD}
+```
+Upgrade & Migration Workflow
+When updating to a newer image release, pull the image and apply migrations without data loss:
+```bash
+# 1. Pull latest images
+docker compose pull
+
+# 2. Recreate containers with new image
+docker compose up -d
+
+# 3. Apply database schema migrations
+docker compose exec backend bench --site ${SITE_NAME:-frontend} migrate
+
+# 4. Clear cache to reflect frontend asset updates
+docker compose exec backend bench --site ${SITE_NAME:-frontend} clear-cache
+```
+## Useful Bench Commands
+Access Frappe CLI utilities directly within the backend container:
+
+Interactive Bench Shell:
+```bash
+docker compose exec backend bash
+```
+
+Frappe Python Console:
+```bash
+docker compose exec backend bench --site ${SITE_NAME:-frontend} console
+```
+
+List Installed Applications:
+```bash
+docker compose exec backend bench --site ${SITE_NAME:-frontend} list-apps
+```
+
+Restart Background Workers:
+```bash
+docker compose restart queue-short queue-long queue-default
+```
 ## Local test build
 
 ```bash
@@ -122,7 +210,6 @@ docker build \
 ```
 
 Requires Docker Engine v23.0+ (BuildKit default).
-
 ## License
 
 Each bundled app retains its own upstream license (mostly MIT/GPL-3.0). This
