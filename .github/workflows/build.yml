@@ -5,6 +5,7 @@ on:
     paths:
       - "apps.json"
       - ".github/workflows/build.yml"
+      - "README.md"
   schedule:
     - cron: "0 20 * * 0" # every Sunday 20:00 UTC (Monday 04:00 MYT)
   workflow_dispatch: {}
