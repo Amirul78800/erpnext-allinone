@@ -78,7 +78,7 @@ erpnext-allinone/
    - `DOCKERHUB_TOKEN` - a Docker Hub access token (Account Settings → Security → New Access Token - not your password)
 2. Push to any branch, or trigger manually from the Actions tab.
 
-## Quick Start with Docker Compose
+# Quick Start with Docker Compose
 
 1. Copy the sample environment file:
    ```bash
@@ -128,7 +128,7 @@ docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app buil
 docker compose exec backend bench --site ${SITE_NAME:-frontend} install-app myinvois_erpgulf
 ```
 
-## Environment Variables (`.env`)
+# Environment Variables (`.env`)
 
 Copy the template from `example.env` to `.env` before starting the Docker Compose cluster:
 
@@ -144,21 +144,21 @@ cp example.env .env
 | CONTAINER_PORT | 8080 | Host port mapped to the web server / reverse proxy |
 | LETSENCRYPT_EMAIL | admin@yourdomain.com | Email for automated Let's Encrypt SSL certificates (if using Traefik) |
 
-## Operations & Maintenance
+# Operations & Maintenance
 
-Database & File Backups
+## Database & File Backups 
 Run backups manually or via cron. This exports the database dump and archives public/private uploaded files into sites/${SITE_NAME}/private/backups/:
 ```bash
 docker compose exec backend bench --site ${SITE_NAME:-frontend} backup --with-files
 ```
-Site Restoration
+## Site Restoration
 To restore a site from an existing .sql.gz archive:
 ```bash
 docker compose exec backend bench --site ${SITE_NAME:-frontend} restore \
   /path/to/backup.sql.gz \
   --mariadb-root-password ${DB_ROOT_PASSWORD}
 ```
-Upgrade & Migration Workflow
+## Upgrade & Migration Workflow
 When updating to a newer image release, pull the image and apply migrations without data loss:
 ```bash
 # 1. Pull latest images
@@ -176,26 +176,23 @@ docker compose exec backend bench --site ${SITE_NAME:-frontend} clear-cache
 ## Useful Bench Commands
 Access Frappe CLI utilities directly within the backend container:
 
-Interactive Bench Shell:
+### Interactive Bench Shell:
 ```bash
 docker compose exec backend bash
 ```
-
-Frappe Python Console:
+### Frappe Python Console:
 ```bash
 docker compose exec backend bench --site ${SITE_NAME:-frontend} console
 ```
-
-List Installed Applications:
+### List Installed Applications:
 ```bash
 docker compose exec backend bench --site ${SITE_NAME:-frontend} list-apps
 ```
-
-Restart Background Workers:
+### Restart Background Workers:
 ```bash
 docker compose restart queue-short queue-long queue-default
 ```
-## Local test build
+# Local test build
 
 ```bash
 git clone https://github.com/frappe/frappe_docker
@@ -211,7 +208,7 @@ docker build \
 ```
 
 Requires Docker Engine v23.0+ (BuildKit default).
-## License
+# License
 
 Each bundled app retains its own upstream license (mostly MIT/GPL-3.0). This
 repo is just build tooling - see each app's own repository for licensing
