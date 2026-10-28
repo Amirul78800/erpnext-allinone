@@ -5,8 +5,9 @@ official Frappe apps and a Malaysia LHDN e-Invoicing integration - built
 straight from source via GitHub Actions, so nothing disappears when a
 container gets recreated.
 
-[![Build and Push](https://github.com/Amirul78800/erpnext-allinone/actions/workflows/build.yml/badge.svg)](https://github.com/Amirul78800/erpnext-allinone/actions/workflows/build.yml)
-[![Docker Hub](https://img.shields.io/badge/docker%20hub-allinone--erpnext-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/amirul123/allinone-erpnext)
+[![Build and Push All-in-One ERPNext Image](https://github.com/Amirul78800/erpnext-allinone/actions/workflows/build.yml/badge.svg)](https://github.com/Amirul78800/erpnext-allinone/actions)
+[![Docker Hub](https://img.shields.io/badge/dockerhub-allinone--erpnext-blue?logo=docker&style=flat-square)](https://hub.docker.com/r/amirul123/allinone-erpnext)
+[![Docker Pulls](https://img.shields.io/docker/pulls/amirul123/allinone-erpnext?style=flat-square)](https://hub.docker.com/r/amirul123/allinone-erpnext)
 [![Docker Image Size](https://img.shields.io/docker/image-size/amirul123/allinone-erpnext/latest?style=flat-square)](https://hub.docker.com/r/amirul123/allinone-erpnext)
 [![License](https://img.shields.io/github/license/Amirul78800/erpnext-allinone?style=flat-square)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/Amirul78800/erpnext-allinone?style=flat-square)](https://github.com/Amirul78800/erpnext-allinone/releases)
