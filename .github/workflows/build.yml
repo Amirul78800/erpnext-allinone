@@ -91,3 +91,12 @@ jobs:
             ${{ github.ref_name == 'main' && format('{0}:v16-{1}', env.IMAGE, steps.date.outputs.d) || '' }}
             ${{ github.ref_name == 'main' && format('{0}:v16', env.IMAGE) || '' }}
             ${{ github.ref_name == 'main' && format('{0}:latest', env.IMAGE) || '' }}
+
+      - name: Update Docker Hub Description
+        if: github.ref_name == 'main'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: amirul123/allinone-erpnext
+          readme-filepath: ./README.md
