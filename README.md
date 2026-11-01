@@ -21,37 +21,35 @@ This repo bakes every app directly into the image at build time, so the
 whole stack survives container recreation. Only the site's own data (in a
 separate volume) needs to persist, which you'd be doing anyway.
 
-## Apps included
+## Apps included & Upstream Release Tracking
 
-| App | Branch | Purpose |
-|---|---|---|
-| **Frappe** (core) | `version-16` | Base framework |
-| **ERPNext** | `version-16` | Accounting, inventory, sales, purchasing |
-| **HRMS** | `version-16` | Attendance, leave, payroll |
-| **Telephony** | `develop` | Required dependency of CRM & Helpdesk (call/SMS logging) |
-| **WhatsApp** | `develop` | Official WhatsApp integration for messaging and notifications |
-| **CRM** | `main` | Standalone sales pipeline, modern UI |
-| **Helpdesk** | `main` | Support ticketing |
-| **Insights** | `version-3` | BI dashboards, cross-app reporting |
-| **Builder** | `develop` | No-code website/portal builder |
-| **MyInvois** ([ERPGulf](https://github.com/ERPGulf/myinvois)) | `main` | Malaysia LHDN e-Invoice compliance |
+Every application is cloned from its designated upstream repository and branch at build time. Because branches like `main` and `develop` receive continuous rolling updates, the image is automatically rebuilt on a weekly schedule so upstream bugfixes and features are kept fresh.
 
-> **Note on installing MyInvois:** the repo is named `myinvois`, but the
-> actual Frappe app/module inside it is `myinvois_erpgulf`. Use that name
-> with `bench install-app`, not `myinvois`.
+| Application | Frappe App Module | Upstream Repository | Tracked Branch | Release Cadence | Upstream Releases | Core Capabilities |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Frappe** | `frappe` | [frappe/frappe](https://github.com/frappe/frappe) | `version-16` | Stable (v16 LTS) | [Releases](https://github.com/frappe/frappe/releases) | Core full-stack web framework, ORM, REST API, Auth & Metadata |
+| **ERPNext** | `erpnext` | [frappe/erpnext](https://github.com/frappe/erpnext) | `version-16` | Stable (v16 LTS) | [Releases](https://github.com/frappe/erpnext/releases) | General ledger, inventory, sales, purchasing, manufacturing |
+| **HRMS** | `hrms` | [frappe/hrms](https://github.com/frappe/hrms) | `version-16` | Stable (v16 LTS) | [Releases](https://github.com/frappe/hrms/releases) | Payroll, leave & attendance tracking, employee lifecycle, expenses |
+| **CRM** | `crm` | [frappe/crm](https://github.com/frappe/crm) | `main` | Rolling (Active) | [Releases](https://github.com/frappe/crm/releases) | Modern sales pipeline, leads, deals, omnichannel communication |
+| **Helpdesk** | `helpdesk` | [frappe/helpdesk](https://github.com/frappe/helpdesk) | `main` | Rolling (Active) | [Releases](https://github.com/frappe/helpdesk/releases) | Support ticketing system, SLA policies, customer knowledge base |
+| **Insights** | `insights` | [frappe/insights](https://github.com/frappe/insights) | `version-3` | Stable (v3 Track) | [Releases](https://github.com/frappe/insights/releases) | Visual BI dashboards, SQL/visual query builder, cross-app reporting |
+| **Builder** | `builder` | [frappe/builder](https://github.com/frappe/builder) | `develop` | Rolling (Cutting Edge) | [Releases](https://github.com/frappe/builder/releases) | Drag-and-drop no-code visual website & customer portal builder |
+| **WhatsApp** | `whatsapp` | [frappe/whatsapp](https://github.com/frappe/whatsapp) | `develop` | Rolling (Active) | [Releases](https://github.com/frappe/whatsapp/releases) | Meta WhatsApp Business API integration for alerts & messaging |
+| **Telephony** | `telephony` | [frappe/telephony](https://github.com/frappe/telephony) | `develop` | Rolling (Dependency) | [Releases](https://github.com/frappe/telephony/releases) | Inbound/outbound call & SMS logging (auto-installed by CRM/Helpdesk) |
+| **MyInvois** | `myinvois_erpgulf` | [ERPGulf/myinvois](https://github.com/ERPGulf/myinvois) | `main` | Rolling (Active) | [Releases](https://github.com/ERPGulf/myinvois/releases) | Malaysia LHDN e-Invoicing compliance integration |
+
+> [!NOTE]
+> **Installing MyInvois:** Notice that while the GitHub repository is named `ERPGulf/myinvois`, the internal Frappe module name is `myinvois_erpgulf`. Always pass `myinvois_erpgulf` when using `bench install-app`.
 >
-> **Note on Telephony:** you won't need to pass `--install-app telephony`
-> explicitly - Frappe auto-installs it as a required dependency the moment
-> CRM or Helpdesk installs, as long as the code is present in the image
-> (which it is here).
+> **Telephony Auto-Installation:** `telephony` is a dependency of both `crm` and `helpdesk`. Frappe automatically installs it when CRM or Helpdesk is installed, as its code is already baked into the image.
 
 **Base:** Built using `frappe/frappe_docker`'s layered Containerfile targeting Frappe Framework `version-16`.
 
 ## Branching & Tags
 
 The workflow triggers on push to branches/tags and publishes the following image tags to Docker Hub:
-- `<image>:<branch_name>` — e.g. a push to `v3.1` produces `amirul123/allinone-erpnext:v3.1`
-- `<image>:<tag>` — release tags (e.g. `v3.1.2`)
+- `<image>:<branch_name>` — e.g. a push to `v3.2` produces `amirul123/allinone-erpnext:v3.2`
+- `<image>:<tag>` — release tags (e.g. `v3.2.0`)
 - `<image>:<sha>` — exact commit SHA for immutable deployment pins
 
 When pushing to **`main`**, the workflow additionally publishes:
@@ -182,6 +180,11 @@ docker compose exec backend bench --site ${SITE_NAME:-yoursite.local} clear-cach
 
 ## Useful Bench Commands
 Access Frappe CLI utilities directly within the backend container:
+
+### Check Installed Application Versions:
+```bash
+docker compose exec backend bench --site ${SITE_NAME:-yoursite.local} version
+```
 
 ### Interactive Bench Shell:
 ```bash
