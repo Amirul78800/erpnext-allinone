@@ -4,15 +4,16 @@ x-customizable-image: &customizable_image
   image: ${CUSTOM_IMAGE:-amirul123/allinone-erpnext}:${CUSTOM_TAG:-latest}
   restart: unless-stopped
 
-x-depends-on-configurator: &depends_on_configurator
+x-backend-base: &backend_base
+  <<: *customizable_image
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+
+x-backend-defaults: &backend_defaults
+  <<: *backend_base
   depends_on:
     configurator:
       condition: service_completed_successfully
-
-x-backend-defaults: &backend_defaults
-  <<: [*depends_on_configurator, *customizable_image]
-  volumes:
-    - sites:/home/frappe/frappe-bench/sites
 
 services:
   db:
@@ -23,25 +24,42 @@ services:
       - --collation-server=utf8mb4_unicode_ci
       - --skip-character-set-client-handshake
       - --skip-innodb-read-only-compressed
+      - --default-storage-engine=INNODB
+      - --max-allowed-packet=64M
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-admin}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-${DB_PASSWORD:-admin}}
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - db-data:/var/lib/mysql
 
   redis-cache:
     image: redis:7-alpine
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     volumes:
       - redis-cache-data:/data
 
   redis-queue:
     image: redis:7-alpine
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     volumes:
       - redis-queue-data:/data
 
   configurator:
-    <<: *backend_defaults
+    <<: *backend_base
     entrypoint:
       - bash
       - -c
@@ -61,18 +79,15 @@ services:
       REDIS_QUEUE: ${REDIS_QUEUE:-redis-queue:6379}
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
       redis-cache:
-        condition: service_started
+        condition: service_healthy
       redis-queue:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   backend:
     <<: *backend_defaults
-    depends_on:
-      configurator:
-        condition: service_completed_successfully
 
   frontend:
     <<: *customizable_image
@@ -82,30 +97,32 @@ services:
       BACKEND: backend:8000
       SOCKETIO: websocket:9000
       NGINX_LISTEN_PORT: 8080
-      FRAPPE_SITE_NAME_HEADER: ${FRAPPE_SITE_NAME_HEADER:-$$host}
+      FRAPPE_SITE_NAME_HEADER: ${FRAPPE_SITE_NAME_HEADER:-${SITE_NAME:-$$host}}
     volumes:
       - sites:/home/frappe/frappe-bench/sites
     ports:
-      - "${HTTP_PORT:-8080}:8080"
+      - "${CONTAINER_PORT:-${HTTP_PORT:-8080}}:8080"
     depends_on:
       - backend
       - websocket
 
   websocket:
-    <<: [*depends_on_configurator, *customizable_image]
+    <<: *backend_defaults
     command:
       - node
       - /home/frappe/frappe-bench/apps/frappe/socketio.js
-    volumes:
-      - sites:/home/frappe/frappe-bench/sites
 
   queue-short:
     <<: *backend_defaults
-    command: bench worker --queue short,default
+    command: bench worker --queue short
+
+  queue-default:
+    <<: *backend_defaults
+    command: bench worker --queue default
 
   queue-long:
     <<: *backend_defaults
-    command: bench worker --queue long,default,short
+    command: bench worker --queue long
 
   scheduler:
     <<: *backend_defaults

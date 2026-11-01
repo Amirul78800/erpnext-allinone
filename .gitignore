@@ -3,3 +3,9 @@
 *.log
 site-data/
 db-data/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tar.gz
+*.sql.gz

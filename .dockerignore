@@ -1,5 +1,10 @@
-# .gitignore
+# .dockerignore
+.git/
+.github/
+*.md
 .env
 *.log
 site-data/
 db-data/
+.vscode/
+.idea/
